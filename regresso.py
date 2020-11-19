@@ -7,7 +7,7 @@ import sympy as sp
 # -Perform least squares regression on i 2D data points by approximating x the vector of parameters of the function f.
 
 # Mathematical explanation and definition of objects:
-# -x is projected onto C(A) the column space of A to find the approximate solution ^x to Ax=b, where bi = f(X) for a given X
+# -x is projected onto C(A) the column space of A to find the approximate solution ^x to Ax=b, where bi = f(t) for a given t
 # and the row vector Ai contains the sum terms of the function of unknown coefficients f. 
 # -All columns of A must be independant, if not the equation is rewritten as Â*C*^x=b where Â contains no dependance.
 
@@ -17,6 +17,10 @@ if fntype == "linear":
     print("yes linear")
     AcolN = 2
     #the first line in x is the coefficient, the second the offset
+elif fntype == "quadratic":
+    print("yes quadratic")
+    AcolN = 3
+    #the first line in x is a, the second b, the third c in ax^2_bx+c
 
 #read from input file containing data points, get: 
 # # of datapoints (AlineN), values used to elaborate A (xvals), and b
@@ -33,30 +37,15 @@ bl=[]
 allpts = open('input.txt')
 for ptsline in allpts:
     print(ptsline)
-    print(AlineN)
+    #print(AlineN)
 
     #append x value of point
     X = int(ptsline.partition(";")[0].strip() )
     Xl.append(X)
-    '''
-    if AlineN == 0:
-        Xvals[AlineN, 0] = int(ptsline.partition(";")[0].strip() )
-    else:
-         
-        Xvals.col_join( sp.Matrix(1,1, [ X ] ) )
-    '''
+
     #append y value of point to b
     Y = int(ptsline.partition(";")[2].strip() )
     bl.append(Y)
-    '''
-    if AlineN == 0:
-        b[AlineN, 0] = int(ptsline.partition(";")[2].strip() )
-    else:
-        print("join")
-        
-        print(Y)
-        b.row_insert(AlineN, sp.Matrix( [[ Y ]] ) )
-    '''
 
     AlineN = AlineN+1
 allpts.close()
@@ -79,9 +68,15 @@ print("---")
 print(b)
 print("----")
 
-#elaborate the A matrix
+#elaborate the A matrix, Xvals is not needed beyond this point and can be altered
 if fntype == "linear":
     A = sp.ones(AlineN,1)
+    A = A.col_insert(0, Xvals)
+elif fntype == "quadratic":
+    A = sp.ones(AlineN,1)
+    A = A.col_insert(0, Xvals)
+    for i in range(AlineN-1):
+        Xvals[i, 0] = Xvals[i, 0]**2
     A = A.col_insert(0, Xvals)
 
 print("A matrix:")
@@ -91,11 +86,12 @@ print("----")
 #ensure ATA is invertible: find Â and C such that Â's columns are independant and Â*C = A
     #skip if all columns of A are independant
 #find the reduced row echelon form of A
-
+R=A.rref()
+print("RREF of A:")
+print(R)
+print("----")
 
 #iterate through all columns to find and register dependancy in C
-
-
 
 #Obtain ^x by projecting onto C(A)
 AT = A.T
@@ -110,14 +106,20 @@ solution = invATA*ATb
 print(solution)
 
 #plot points
-plt.scatter(Xvals, b)
+plt.scatter(Xl, b)
 
 #plot function
 #make the last value be rounded from the highest point x value, idem first (?)
 xplotvals = np.linspace(Xmin, Xmax, Xpts)
 
+print("function parameters")
+for i in range( AcolN ):
+    print(solution[i])
+
 if fntype == "linear":
     yplotvals = solution[0]*xplotvals+solution[1]
+elif fntype == "quadratic":
+    yplotvals = solution[0]*xplotvals**2 + solution[1]*xplotvals + solution[2]
 
 plt.plot(xplotvals, yplotvals)
 #plt.draw() ??
