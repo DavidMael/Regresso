@@ -22,36 +22,52 @@ if fntype == "linear":
 # # of datapoints (AlineN), values used to elaborate A (xvals), and b
 AlineN = 0
 
-X = np.empty
-Y = np.empty
-Xvals = np.array([])
-b = np.array([])
+X=0
+Y=0
+#Xvals = sp.zeros(1,1)
+#b = sp.zeros(1,1)
+Xl=[]
+bl=[]
 
 #open file and pass through each line, which corresponds to a data point 
 allpts = open('input.txt')
 for ptsline in allpts:
     print(ptsline)
+    print(AlineN)
 
     #append x value of point
-    if Xvals.size == 0:
-        Xvals = np.array( [ int(ptsline.partition(";")[0].strip() ) ] )
+    X = int(ptsline.partition(";")[0].strip() )
+    Xl.append(X)
+    '''
+    if AlineN == 0:
+        Xvals[AlineN, 0] = int(ptsline.partition(";")[0].strip() )
     else:
-        X = np.array( [ int(ptsline.partition(";")[0].strip() ) ] ) 
-        Xvals = np.vstack( (Xvals, X) )
-
+         
+        Xvals.col_join( sp.Matrix(1,1, [ X ] ) )
+    '''
     #append y value of point to b
-    if b.size == 0:
-        b = np.array( [ int(ptsline.partition(";")[2].strip() ) ] )
+    Y = int(ptsline.partition(";")[2].strip() )
+    bl.append(Y)
+    '''
+    if AlineN == 0:
+        b[AlineN, 0] = int(ptsline.partition(";")[2].strip() )
     else:
-        Y = np.array( [ int(ptsline.partition(";")[2].strip() ) ] ) 
-        b = np.vstack( (b, Y) )
+        print("join")
+        
+        print(Y)
+        b.row_insert(AlineN, sp.Matrix( [[ Y ]] ) )
+    '''
 
     AlineN = AlineN+1
 allpts.close()
 
-#determine framing of plot and axis markings, not adapted to general case
-Xmin = np.amin(Xvals)
-Xmax = np.amax(Xvals)
+Xvals = (sp.Matrix(Xl))
+b = (sp.Matrix(bl))
+#Xvals and b are now column vectors
+
+#determine framing of plot and number of points to plot, not adapted to general case
+Xmin = min(Xl)
+Xmax = max(Xl)
 Xpts = (Xmax-Xmin)*5
 Ymin = 0
 Ymax = 0
@@ -65,8 +81,8 @@ print("----")
 
 #elaborate the A matrix
 if fntype == "linear":
-    Aright = np.full((AlineN, 1), 1, dtype=int)
-    A = np.concatenate( (Xvals, Aright), axis=1)
+    A = sp.ones(AlineN,1)
+    A = A.col_insert(0, Xvals)
 
 print("A matrix:")
 print(A)
@@ -82,15 +98,15 @@ print("----")
 
 
 #Obtain ^x by projecting onto C(A)
-AT = np.transpose(A)
+AT = A.T
 print(AT)
-ATA = np.dot(AT, A)
+ATA = AT*A
 print(ATA)
-invATA = la.inv(ATA)
+invATA = ATA**-1
 print(invATA)
-ATb = np.dot(AT, b)
+ATb = AT*b
 print(ATb)
-solution = np.dot(invATA, ATb)
+solution = invATA*ATb
 print(solution)
 
 #plot points
