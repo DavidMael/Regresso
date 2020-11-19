@@ -75,7 +75,7 @@ if fntype == "linear":
 elif fntype == "quadratic":
     A = sp.ones(AlineN,1)
     A = A.col_insert(0, Xvals)
-    for i in range(AlineN-1):
+    for i in range(AlineN):
         Xvals[i, 0] = Xvals[i, 0]**2
     A = A.col_insert(0, Xvals)
 
@@ -109,7 +109,7 @@ print(solution)
 plt.scatter(Xl, b)
 
 #plot function
-#make the last value be rounded from the highest point x value, idem first (?)
+#make the last value be rounded from the highest point x value, idem first
 xplotvals = np.linspace(Xmin, Xmax, Xpts)
 
 print("function parameters")
@@ -119,7 +119,7 @@ for i in range( AcolN ):
 if fntype == "linear":
     yplotvals = solution[0]*xplotvals+solution[1]
 elif fntype == "quadratic":
-    yplotvals = solution[0]*xplotvals**2 + solution[1]*xplotvals + solution[2]
+    yplotvals = solution[0]*(xplotvals**2) + solution[1]*xplotvals + solution[2]
 
 plt.plot(xplotvals, yplotvals)
 #plt.draw() ??
