@@ -9,7 +9,7 @@ import sympy as sp
 # Mathematical explanation and definition of objects:
 # -x is projected onto C(A) the column space of A to find the approximate solution ^x to Ax=b, where bi = f(t) for a given t
 # and the row vector Ai contains the sum terms of the function of unknown coefficients f. 
-# -All columns of A must be independant, if not the equation is rewritten as Â*C*^x=b where Â contains no dependance.
+# -All columns of A must be independant, if not the equation is rewritten as Â*C*^x=b where Â has full column rank.
 
 #type of function, get: # of columns in A (and size of x)
 fntype = input("Enter a function type: ")
@@ -81,17 +81,41 @@ elif fntype == "quadratic":
 
 print("A matrix:")
 print(A)
+print(AcolN)
+print(AlineN)
 print("----")
 
 #ensure ATA is invertible: find Â and C such that Â's columns are independant and Â*C = A
     #skip if all columns of A are independant
-#find the reduced row echelon form of A
+#find the reduced row echelon form of A in R[0], R[1] containing the indices of pivot columns
 R=A.rref()
 print("RREF of A:")
 print(R)
 print("----")
 
-#iterate through all columns to find and register dependancy in C
+#determine if A has full column rank, if not then assign C and A=Â
+pivnum = len(R[1])
+if pivnum < AcolN:
+    C = R[0][0:pivnum, :]
+    print("Coeff matrix C:")
+    print(C)
+    print("-----")
+
+    #Delete dependant columns of A,
+    #working backwards through columns of A and R[1] pivot indices to preserve meaning of indices in R[1]
+    pivcount=pivnum-1
+    for i in range (AcolN):
+        #print("numbers")
+        #print(i)
+        #print(pivcount)
+        if (AcolN-i-1) == R[1][pivcount]:
+            pivcount -= 1
+        else:
+            A.col_del( (AcolN-i-1) )
+    print("full column rank matrix Â:")
+    print(A)
+    print("-----")
+
 
 #Obtain ^x by projecting onto C(A)
 AT = A.T
@@ -104,6 +128,35 @@ ATb = AT*b
 print(ATb)
 solution = invATA*ATb
 print(solution)
+
+#if A was reduced to Â, extend C and the incomplete solution s to Ĉ and ^s to find the solution ^x
+if pivnum<AcolN:
+    sizextend = AcolN-pivnum
+    print(sizextend)
+
+    y=np.array(solution).astype(np.float64)
+    y=np.concatenate((y, np.ones((sizextend, 1)) ), axis=0)
+    print("ŷ vector:")
+    print(y)
+    print("-----")
+
+    print(C)
+    C=np.array(C).astype(np.float64)
+    print(C)
+    for i in range (sizextend):
+        z=np.zeros((1, AcolN))
+        print(z)
+        z[0,i]=1
+        print(i)
+        print(z)
+        C=np.concatenate((C, z ), axis=0)
+
+    print("Ĉ matrix:")
+    print(C)
+    print("-----")
+
+    #solve Ĉ*^x=ŷ for final solution
+    solution = np.linalg.solve(C, y)
 
 #plot points
 plt.scatter(Xl, b)
