@@ -86,6 +86,8 @@ print(R)
 print("----")
 
 #determine if A has full column rank, if not then assign C and A=Â
+#This should only happen in certain specific cases, such as the Aŝ=b being underdetermined, some cases of the input containing 
+# many repeated points, or functions that give proportional values over the enire set of input x values such as two unit steps
 pivnum = len(R[1])
 if pivnum < AcolN:
     C = R[0][0:pivnum, :]
