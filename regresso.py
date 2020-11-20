@@ -131,11 +131,19 @@ print(solution)
 
 #if A was reduced to Â, extend C and the incomplete solution s to Ĉ and ^s to find the solution ^x
 if pivnum<AcolN:
+
     sizextend = AcolN-pivnum
     print(sizextend)
 
+    #extend the intermediate solution vector y with 0s if the system is underdetermined 
+    #and with 1s if A isn't full column rank for any other reson
+    if (AcolN>AlineN):
+        yextend = np.zeros((sizextend, 1))
+    else:
+        yextend = np.ones((sizextend, 1))
+
     y=np.array(solution).astype(np.float64)
-    y=np.concatenate((y, np.ones((sizextend, 1)) ), axis=0)
+    y=np.concatenate((y, yextend ), axis=0)
     print("ŷ vector:")
     print(y)
     print("-----")
@@ -145,10 +153,7 @@ if pivnum<AcolN:
     print(C)
     for i in range (sizextend):
         z=np.zeros((1, AcolN))
-        print(z)
         z[0,i]=1
-        print(i)
-        print(z)
         C=np.concatenate((C, z ), axis=0)
 
     print("Ĉ matrix:")
