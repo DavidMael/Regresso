@@ -4,23 +4,23 @@ import numpy.linalg as la
 import sympy as sp
 
 # Objective of the program:
-# -Perform least squares regression on i 2D data points by approximating x the vector of parameters of the function f.
+# -Perform least squares regression on i 2D data points by approximating s the vector of parameters of the function f.
 
 # Mathematical explanation and definition of objects:
-# -x is projected onto C(A) the column space of A to find the approximate solution ^x to Ax=b, where bi = f(t) for a given t
+# -s is projected onto C(A) the column space of A to find the approximate solution ŝ to As=b, where bi = f(t) for a given t
 # and the row vector Ai contains the sum terms of the function of unknown coefficients f. 
-# -All columns of A must be independant, if not the equation is rewritten as Â*C*^x=b where Â has full column rank.
+# -All columns of A must be independant, if not the equation is rewritten as ÂCŝ=b where Â has full column rank.
 
-#type of function, get: # of columns in A (and size of x)
+#type of function, get: # of columns in A (and size of s)
 fntype = input("Enter a function type: ")
 if fntype == "linear":
     print("yes linear")
     AcolN = 2
-    #the first line in x is the coefficient, the second the offset
+    #the first line in s is the coefficient, the second the offset
 elif fntype == "quadratic":
     print("yes quadratic")
     AcolN = 3
-    #the first line in x is a, the second b, the third c in ax^2_bx+c
+    #the first line in s is a, the second b, the third c in ax^2+bx+c
 
 #read from input file containing data points, get: 
 # # of datapoints (AlineN), values used to elaborate A (xvals), and b
@@ -85,7 +85,7 @@ print(AcolN)
 print(AlineN)
 print("----")
 
-#ensure ATA is invertible: find Â and C such that Â's columns are independant and Â*C = A
+#ensure ATA is invertible: find Â and C such that Â's columns are independant and ÂC = A
     #skip if all columns of A are independant
 #find the reduced row echelon form of A in R[0], R[1] containing the indices of pivot columns
 R=A.rref()
@@ -117,7 +117,7 @@ if pivnum < AcolN:
     print("-----")
 
 
-#Obtain ^x by projecting onto C(A)
+#Obtain ŝ by projecting onto C(A)
 AT = A.T
 print(AT)
 ATA = AT*A
@@ -129,13 +129,12 @@ print(ATb)
 solution = invATA*ATb
 print(solution)
 
-#if A was reduced to Â, extend C and the incomplete solution s to Ĉ and ^s to find the solution ^x
+#if A was reduced to Â, copy ŝ as the intermediate solution ŷ and extend C and y to Ĉ and ŷ to solve Ĉŝ=ŷ
 if pivnum<AcolN:
 
     sizextend = AcolN-pivnum
-    print(sizextend)
 
-    #extend the intermediate solution vector y with 0s if the system is underdetermined 
+    #extend to the size of ŝ the intermediate solution vector ŷ with 0s if the system is underdetermined 
     #and with 1s if A isn't full column rank for any other reson
     if (AcolN>AlineN):
         yextend = np.zeros((sizextend, 1))
@@ -148,6 +147,7 @@ if pivnum<AcolN:
     print(y)
     print("-----")
 
+    #make Ĉŝ = ŷ solvable by extending Ĉ with rows of 1 1 and n 0s such that it is square and full column rank.
     print(C)
     C=np.array(C).astype(np.float64)
     print(C)
@@ -160,7 +160,7 @@ if pivnum<AcolN:
     print(C)
     print("-----")
 
-    #solve Ĉ*^x=ŷ for final solution
+    #solve Ĉŝ=ŷ for final solution
     solution = np.linalg.solve(C, y)
 
 #plot points
