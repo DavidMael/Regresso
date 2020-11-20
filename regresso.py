@@ -4,12 +4,16 @@ import numpy.linalg as la
 import sympy as sp
 
 # Objective of the program:
-# -Perform least squares regression on i 2D data points by approximating s the vector of parameters of the function f.
+# -Read i 2D data points from input.txt, assumed not to contain outliers, and the type of regression to perform on them
+# -Perform least squares regression on this data by approximating s the vector of parameters of the function f.
+# -Plot the data points and the obtained function
 
 # Mathematical explanation and definition of objects:
 # -s is projected onto C(A) the column space of A to find the approximate solution ŝ to As=b, where bi = f(t) for a given t
 # and the row vector Ai contains the sum terms of the function of unknown coefficients f. 
 # -All columns of A must be independant, if not the equation is rewritten as ÂCŝ=b where Â has full column rank.
+
+#-----Taking input-----
 
 #type of function, get: # of columns in A (and size of s)
 fntype = input("Enter a function type: ")
@@ -23,13 +27,8 @@ elif fntype == "quadratic":
     #the first line in s is a, the second b, the third c in ax^2+bx+c
 
 #read from input file containing data points, get: 
-# # of datapoints (AlineN), values used to elaborate A (xvals), and b
+# # of datapoints (AlineN), X,Y values used to elaborate A (xvals), b
 AlineN = 0
-
-X=0
-Y=0
-#Xvals = sp.zeros(1,1)
-#b = sp.zeros(1,1)
 Xl=[]
 bl=[]
 
@@ -40,12 +39,10 @@ for ptsline in allpts:
     #print(AlineN)
 
     #append x value of point
-    X = int(ptsline.partition(";")[0].strip() )
-    Xl.append(X)
+    Xl.append( int(ptsline.partition(";")[0].strip() ) )
 
     #append y value of point to b
-    Y = int(ptsline.partition(";")[2].strip() )
-    bl.append(Y)
+    bl.append( int(ptsline.partition(";")[2].strip() ) )
 
     AlineN = AlineN+1
 allpts.close()
@@ -54,19 +51,14 @@ Xvals = (sp.Matrix(Xl))
 b = (sp.Matrix(bl))
 #Xvals and b are now column vectors
 
-#determine framing of plot and number of points to plot, not adapted to general case
-Xmin = min(Xl)
-Xmax = max(Xl)
-Xpts = (Xmax-Xmin)*5
-Ymin = 0
-Ymax = 0
-
 print("----")
-print("X and Y(b vector) values:")
+print("X values and b vector:")
 print(Xvals)
 print("---")
 print(b)
 print("----")
+
+#-----Preparing Aŝ=b and performing Regression-----
 
 #elaborate the A matrix, Xvals is not needed beyond this point and can be altered
 if fntype == "linear":
@@ -112,10 +104,9 @@ if pivnum < AcolN:
             pivcount -= 1
         else:
             A.col_del( (AcolN-i-1) )
-    print("full column rank matrix Â:")
+    print("Full column rank matrix Â:")
     print(A)
     print("-----")
-
 
 #Obtain ŝ by projecting onto C(A)
 AT = A.T
@@ -163,22 +154,32 @@ if pivnum<AcolN:
     #solve Ĉŝ=ŷ for final solution
     solution = np.linalg.solve(C, y)
 
-#plot points
-plt.scatter(Xl, b)
-
-#plot function
-#make the last value be rounded from the highest point x value, idem first
-xplotvals = np.linspace(Xmin, Xmax, Xpts)
-
-print("function parameters")
+print("Function parameters")
 for i in range( AcolN ):
     print(solution[i])
+
+#-----Plotting results-----
+
+#determine framing of plot and number of points to plot, not adapted to general case
+Xmin = min(Xl)
+Xmax = max(Xl)
+Xpts = (Xmax-Xmin)*AlineN*10
+
+#plot points
+plt.scatter(Xl, b, label="Input data")
+
+#plot function
+xplotvals = np.linspace(Xmin, Xmax, Xpts)
 
 if fntype == "linear":
     yplotvals = solution[0]*xplotvals+solution[1]
 elif fntype == "quadratic":
     yplotvals = solution[0]*(xplotvals**2) + solution[1]*xplotvals + solution[2]
 
-plt.plot(xplotvals, yplotvals)
-#plt.draw() ??
+plt.plot(xplotvals, yplotvals, color='r', label="Regression curve")
+
+plt.suptitle("%s regression of input data" % fntype.capitalize() )
+plt.xlabel("x")
+plt.ylabel("f(x)")
+plt.legend()
 plt.show()
